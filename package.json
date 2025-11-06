@@ -4,11 +4,11 @@
   "description": "Back-End do trabalho final da disciplina de WEB",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    
   },
   "keywords": [],
   "author": "KAIKY",
   "license": "ISC",
   "type": "module"
-  
+
 }
