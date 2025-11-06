@@ -3,16 +3,14 @@
   "version": "1.0.0",
   "description": "Back-End do trabalho final da disciplina de WEB",
   "main": "server.js",
-  "scripts": {
-    
-  },
+  "scripts": {},
   "keywords": [],
   "author": "KAIKY",
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "express": "^5.1.0"
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "pg": "^8.16.3"
   }
 }
-
-
