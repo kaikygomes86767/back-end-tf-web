@@ -22,8 +22,8 @@ app.get("/", (req, res) => {
   
   // Responde com um JSON contendo uma mensagem
   res.json({
-		descricao: "Back-End do trabalho final da disciplina de WEB _____",    // Substitua pelo conteúdo da sua API
-    autor: "KAIKY",     // Substitua pelo seu nome
+		descricao: "Back-End do trabalho final da disciplina de WEB",    // Substitua pelo conteúdo da sua API
+    autor: "kaiky",     // Substitua pelo seu nome
   });
 });
 
