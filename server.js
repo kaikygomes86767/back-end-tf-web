@@ -70,7 +70,7 @@ app.get("/", async (req, res) => {
 // ==================================================
 
 // [GET] /planos (Adaptação do [GET] /questoes da Atv 17)
-app.get("/planos", async (req, res) => {
+  app.get("/planos", async (req, res) => {
     console.log("Rota GET /planos solicitada");
     const db = conectarBD();
     
