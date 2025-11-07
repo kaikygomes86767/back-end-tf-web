@@ -65,9 +65,9 @@ app.get("/", async (req, res) => {
 });
 
 
-// ==================================================
-// --- CRUD PLANOS (CORRIGIDO para o SEU BD) ---
-// ==================================================
+
+// --- CRUD PLANOS 
+
 
 // [GET] /planos
 app.get("/planos", async (req, res) => {
@@ -144,7 +144,7 @@ app.put("/planos/:id", async (req, res) => {
         const descricao = data.descricao || planoAtual.descricao;
         const preco = data.preco !== undefined ? data.preco : planoAtual.preco;
 
-        // Consulta (REMOVIDO 'id_usuario' e 'caminho_arquivo_foto')
+        // Consulta ( 'caminho_arquivo_foto')
         consulta =
             "UPDATE planos SET nome = $1, descricao = $2, preco = $3 WHERE id_plano = $4 RETURNING *";
         resultado = await db.query(consulta, [nome, descricao, preco, id]);
@@ -172,9 +172,9 @@ app.delete("/planos/:id", async (req, res) => {
     }
 });
 
-// ==================================================
+
 // --- CRUD FOTOS 
-// ==================================================
+
 
 // [GET] /fotos
 app.get("/fotos", async (req, res) => {
@@ -211,7 +211,7 @@ app.post("/fotos", async (req, res) => {
     console.log("Rota POST /fotos solicitada");
     try {
         const data = req.body;
-        // Validação baseada no BD CORRIGIDO
+        
         if (!data.caminho_arquivo || !data.id_usuario) {
             return res.status(400).json({ erro: "Campos (caminho_arquivo, id_usuario) são obrigatórios." });
         }
@@ -269,16 +269,14 @@ app.delete("/fotos/:id", async (req, res) => {
 });
 
 
-// ==================================================
-// --- CRUD USUARIOS (Como pedido na Atv 18) ---
-// ==================================================
+// --- CRUD USUARIOS 
 
 // [GET] /usuarios
 app.get("/usuarios", async (req, res) => {
     console.log("Rota GET /usuarios solicitada");
     const db = conectarBD();
     try {
-        // ATENÇÃO: Nunca retorne a senha!
+        
         const resultado = await db.query("SELECT id_usuario, nome, email FROM usuarios ORDER BY id_usuario");
         res.json(resultado.rows);
     } catch (e) {
@@ -310,14 +308,11 @@ app.post("/usuarios", async (req, res) => {
     console.log("Rota POST /usuarios solicitada");
     try {
         const data = req.body;
-        // ATENÇÃO: Você deve usar BCRYPT para hash da senha aqui!
         if (!data.nome || !data.email || !data.senha) {
             return res.status(400).json({ erro: "Campos (nome, email, senha) são obrigatórios." });
         }
         
-        // --- Em um projeto real, NUNCA salve a senha em texto puro ---
-        // const hashSenha = await bcrypt.hash(data.senha, 10);
-        // Por agora, vamos salvar a senha como texto (NÃO FAÇA ISSO EM PRODUÇÃO)
+   
         const senha = data.senha; 
         
         const db = conectarBD();
@@ -347,7 +342,7 @@ app.put("/usuarios/:id", async (req, res) => {
 
         const nome = data.nome || usuarioAtual.nome;
         const email = data.email || usuarioAtual.email;
-        // (A lógica de atualizar senha é mais complexa e envolve hash, pulando por enquanto)
+        
         
         const consulta = "UPDATE usuarios SET nome = $1, email = $2 WHERE id_usuario = $3 RETURNING id_usuario, nome, email";
         resultado = await db.query(consulta, [nome, email, id]);
@@ -365,7 +360,7 @@ app.delete("/usuarios/:id", async (req, res) => {
         const id = req.params.id;
         const db = conectarBD();
         
-        // Cuidado: Adicionar lógica para não permitir deletar o admin principal
+        
         
         const resultado = await db.query("DELETE FROM usuarios WHERE id_usuario = $1 RETURNING *", [id]);
         if (resultado.rowCount === 0) {
@@ -378,11 +373,4 @@ app.delete("/usuarios/:id", async (req, res) => {
     }
 });
 
-
-// ######
-// Local onde o servidor irá escutar as requisições
-// ######
-
-// REMOVIDO: app.listen(...)
-// A Vercel não usa app.listen. Em vez disso, exportamos o app.
 export default app;
