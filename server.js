@@ -59,10 +59,7 @@ app.get("/", async (req, res) => {
     });
 });
 
-// --- Início da Adaptação da Atividade 17 ---
-
-// Rota [GET] /planos (Equivalente ao /questoes da atividade)
-app.get("/planos", async (req, res) => {
+  app.get("/planos", async (req, res) => {
     console.log("Rota GET /planos solicitada");
     
     const db = conectarBD(); // 1. Usa a função de conexão reutilizável
@@ -81,7 +78,7 @@ app.get("/planos", async (req, res) => {
     }
 });
 
-// Rota [GET] /fotos (Bônus, usando a mesma lógica da Atividade 17)
+
 app.get("/fotos", async (req, res) => {
     console.log("Rota GET /fotos solicitada");
     
