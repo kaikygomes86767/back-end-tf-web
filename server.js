@@ -66,15 +66,16 @@ app.get("/", async (req, res) => {
 
 
 // ==================================================
-// 
-// --- CRUD PLANOS (CORRIGIDO para O SEU BD) ---
+// --- CRUD PLANOS  ---
 // ==================================================
 
-// [GET] /planos
-app.get("/planos", async (req, res) => {
+// [GET] /planos 
+  app.get("/planos", async (req, res) => {
     console.log("Rota GET /planos solicitada");
     const db = conectarBD();
+    
     try {
+        // Usei o BD CORRIGIDO como base
         const resultado = await db.query("SELECT * FROM planos ORDER BY id_plano");
         res.json(resultado.rows);
     } catch (e) {
@@ -83,7 +84,7 @@ app.get("/planos", async (req, res) => {
     }
 });
 
-// [GET] /planos/:id
+// [GET] /planos/:id 
 app.get("/planos/:id", async (req, res) => {
     console.log("Rota GET /planos/:id solicitada");
     try {
@@ -91,89 +92,97 @@ app.get("/planos/:id", async (req, res) => {
         const db = conectarBD();
         const consulta = "SELECT * FROM planos WHERE id_plano = $1";
         const resultado = await db.query(consulta, [id]);
+        
         if (resultado.rows.length === 0) {
             return res.status(404).json({ mensagem: "Plano não encontrado" });
         }
-        res.json(resultado.rows[0]);
+        res.json(resultado.rows[0]); // Retorna só o primeiro objeto
     } catch (e) {
         console.error("Erro ao buscar plano:", e);
         res.status(500).json({ erro: "Erro interno do servidor" });
     }
 });
 
-// [POST] /planos
+// [POST] /planos (Adaptação do [POST] /questoes da Atv 18)
 app.post("/planos", async (req, res) => {
     console.log("Rota POST /planos solicitada");
     try {
         const data = req.body;
-        // Validação (REMOVIDO 'id_usuario')
-        if (!data.nome || data.preco === undefined) { // Verificando se preco existe, mesmo que seja 0
+        // Validação (adaptada para a tabela planos, usando o BD CORRIGIDO)
+        if (!data.nome || !data.preco || !data.id_usuario) {
             return res.status(400).json({
                 erro: "Dados inválidos",
-                mensagem: "Campos (nome, preco) são obrigatórios.",
+                mensagem: "Campos (nome, preco, id_usuario) são obrigatórios.",
             });
         }
+
         const db = conectarBD();
-        // Consulta (REMOVIDO 'id_usuario')
         const consulta =
-            "INSERT INTO planos (nome, descricao, preco, caminho_arquivo_foto) VALUES ($1, $2, $3, $4) RETURNING *";
-        const plano = [data.nome, data.descricao, data.preco, data.caminho_arquivo_foto];
+            "INSERT INTO planos (nome, descricao, preco, caminho_arquivo_foto, id_usuario) VALUES ($1, $2, $3, $4, $5) RETURNING *";
+        const plano = [data.nome, data.descricao, data.preco, data.caminho_arquivo_foto, data.id_usuario];
         const resultado = await db.query(consulta, plano);
-        res.status(201).json(resultado.rows[0]);
+        res.status(201).json(resultado.rows[0]); // Retorna o plano criado
     } catch (e) {
         console.error("Erro ao inserir plano:", e);
         res.status(500).json({ erro: "Erro interno do servidor" });
     }
 });
 
-// [PUT] /planos/:id
+// [PUT] /planos/:id (Adaptação do [PUT] /questoes/:id da Atv 18)
 app.put("/planos/:id", async (req, res) => {
     console.log("Rota PUT /planos/:id solicitada");
     try {
         const id = req.params.id;
         const db = conectarBD();
+        
+        // 1. Verifica se o plano existe
         let consulta = "SELECT * FROM planos WHERE id_plano = $1";
         let resultado = await db.query(consulta, [id]);
         if (resultado.rows.length === 0) {
             return res.status(404).json({ message: "Plano não encontrado" });
         }
         const planoAtual = resultado.rows[0];
-        const data = req.body;
         
-        // Atualiza campos (REMOVIDO 'id_usuario')
+        // 2. Obtém dados do corpo e usa valores atuais se não for enviado
+        const data = req.body;
         const nome = data.nome || planoAtual.nome;
         const descricao = data.descricao || planoAtual.descricao;
-        // Permite atualizar o preço para 0, mas não se for 'undefined'
-        const preco = data.preco !== undefined ? data.preco : planoAtual.preco;
+        const preco = data.preco || planoAtual.preco;
         const caminho_arquivo_foto = data.caminho_arquivo_foto || planoAtual.caminho_arquivo_foto;
+        const id_usuario = data.id_usuario || planoAtual.id_usuario;
 
-        // Consulta (REMOVIDO 'id_usuario')
+        // 3. Atualiza o plano
         consulta =
-            "UPDATE planos SET nome = $1, descricao = $2, preco = $3, caminho_arquivo_foto = $4 WHERE id_plano = $5 RETURNING *";
-        resultado = await db.query(consulta, [nome, descricao, preco, caminho_arquivo_foto, id]);
-        res.status(200).json(resultado.rows[0]);
+            "UPDATE planos SET nome = $1, descricao = $2, preco = $3, caminho_arquivo_foto = $4, id_usuario = $5 WHERE id_plano = $6 RETURNING *";
+        resultado = await db.query(consulta, [nome, descricao, preco, caminho_arquivo_foto, id_usuario, id]);
+
+        res.status(200).json(resultado.rows[0]); // Retorna o plano atualizado
     } catch (e) {
         console.error("Erro ao atualizar plano:", e);
         res.status(500).json({ erro: "Erro interno do servidor" });
     }
 });
 
-// [DELETE] /planos/:id
+// [DELETE] /planos/:id (Adaptação do [DELETE] /questoes/:id da Atv 18)
 app.delete("/planos/:id", async (req, res) => {
     console.log("Rota DELETE /planos/:id solicitada");
     try {
         const id = req.params.id;
         const db = conectarBD();
+
+        // 1. Tenta deletar e verifica se alguma linha foi afetada
         const resultado = await db.query("DELETE FROM planos WHERE id_plano = $1 RETURNING *", [id]);
-        if (resultado.rowCount === 0) {
+        if (resultado.rowCount === 0) { // Verifica se alguma linha foi deletada
             return res.status(404).json({ mensagem: "Plano não encontrado" });
         }
+
         res.status(200).json({ mensagem: "Plano excluído com sucesso!" });
     } catch (e) {
         console.error("Erro ao excluir plano:", e);
         res.status(500).json({ erro: "Erro interno do servidor" });
     }
 });
+
 
 // ==================================================
 // --- CRUD FOTOS (Adaptação extra da Atv 18) ---
