@@ -66,10 +66,10 @@ app.get("/", async (req, res) => {
 
 
 // ==================================================
-// --- CRUD PLANOS (Adaptação Atv 17 e 18) ---
+// --- CRUD PLANOS  ---
 // ==================================================
 
-// [GET] /planos (Adaptação do [GET] /questoes da Atv 17)
+// [GET] /planos 
   app.get("/planos", async (req, res) => {
     console.log("Rota GET /planos solicitada");
     const db = conectarBD();
@@ -84,7 +84,7 @@ app.get("/", async (req, res) => {
     }
 });
 
-// [GET] /planos/:id (Adaptação do [GET] /questoes/:id da Atv 18)
+// [GET] /planos/:id 
 app.get("/planos/:id", async (req, res) => {
     console.log("Rota GET /planos/:id solicitada");
     try {
