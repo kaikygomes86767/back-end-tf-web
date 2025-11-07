@@ -1,0 +1,27 @@
+meta {
+  name: vercel fotos put
+  type: http
+  seq: 5
+}
+
+put {
+  url: https://back-end-tf-web-i3bt.vercel.app/fotos/22
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "titulo": "pranos de estudante oficial",
+    "caminho_arquivo": "images/foto_teste.png",
+    "id_usuario": 1
+  }
+  
+  
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,28 @@
+meta {
+  name: vercel planos post
+  type: http
+  seq: 8
+}
+
+post {
+  url: https://back-end-tf-web-i3bt.vercel.app/planos
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {"id_plano":2,
+   "nome":"Plano Trimestral",
+   "descricao":"Treino por 3 meses com flexibilidade",
+   "preco":"189.90",
+   "id_usuario":1
+  }
+  
+  
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
