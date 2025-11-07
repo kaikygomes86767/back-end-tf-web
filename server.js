@@ -173,7 +173,7 @@ app.delete("/planos/:id", async (req, res) => {
 });
 
 // ==================================================
-// --- CRUD FOTOS (Adaptação extra da Atv 18) ---
+// --- CRUD FOTOS 
 // ==================================================
 
 // [GET] /fotos
