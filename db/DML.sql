@@ -1,3 +1,4 @@
+
 -- Inserir usuário administrador (somente se não existir)
 INSERT INTO usuarios (nome, email, senha)
 VALUES ('Administrador', 'admin@vikings.com', '1234')
