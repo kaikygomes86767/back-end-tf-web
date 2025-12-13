@@ -4,6 +4,7 @@
 import express from "express"; // Requisição do pacote do express
 import pkg from "pg"; // Requisição do pacote do pg (PostgreSQL)
 import dotenv from "dotenv"; // Importa o pacote dotenv para carregar variáveis de ambiente
+import cors from "cors"; // NOVO: Importa o pacote CORS (Necessário para comunicação entre Front e Back)
 
 // ######
 // Local onde as configurações do servidor serão feitas
@@ -11,6 +12,7 @@ import dotenv from "dotenv"; // Importa o pacote dotenv para carregar variáveis
 dotenv.config(); // Carrega as variáveis de ambiente do arquivo .env
 const app = express(); // Inicializa o servidor Express
 app.use(express.json()); // Middleware para interpretar requisições com corpo em JSON (Atividade 18)
+app.use(cors()); // NOVO: Habilita o CORS para permitir requisições de outras origens
 
 const { Pool } = pkg; // Obtém o construtor Pool do pacote pg (Refatoração Atv 17)
 
@@ -65,7 +67,6 @@ app.get("/", async (req, res) => {
 });
 
 
-
 // --- CRUD PLANOS 
 
 
@@ -74,7 +75,6 @@ app.get("/planos", async (req, res) => {
     console.log("Rota GET /planos solicitada");
     const db = conectarBD();
     try {
-        // Modificação: Se você quiser retornar a imagem no GET /planos, a consulta já faz isso com SELECT *
         const resultado = await db.query("SELECT * FROM planos ORDER BY id_plano");
         res.json(resultado.rows);
     } catch (e) {
@@ -106,7 +106,6 @@ app.post("/planos", async (req, res) => {
     console.log("Rota POST /planos solicitada");
     try {
         const data = req.body;
-        // Validação
         if (!data.nome || data.preco === undefined) {
             return res.status(400).json({
                 erro: "Dados inválidos",
@@ -114,14 +113,10 @@ app.post("/planos", async (req, res) => {
             });
         }
         const db = conectarBD();
-        
-        // MODIFICAÇÃO: Inserindo a coluna 'imagem' e o parâmetro '$4'
         const consulta =
-            "INSERT INTO planos (nome, descricao, preco, imagem) VALUES ($1, $2, $3, $4) RETURNING *";
+            "INSERT INTO planos (nome, descricao, preco, caminho_arquivo_foto) VALUES ($1, $2, $3, $4) RETURNING *";
         
-        // MODIFICAÇÃO: Adicionando 'data.imagem' ao array de valores (usa null se não for enviado)
-        const plano = [data.nome, data.descricao, data.preco, data.imagem || null]; 
-        
+        const plano = [data.nome, data.descricao, data.preco, data.caminho_arquivo_foto || null]; 
         const resultado = await db.query(consulta, plano);
         res.status(201).json(resultado.rows[0]);
     } catch (e) {
@@ -144,17 +139,18 @@ app.put("/planos/:id", async (req, res) => {
         const planoAtual = resultado.rows[0];
         const data = req.body;
         
-        // Atualiza campos
         const nome = data.nome || planoAtual.nome;
         const descricao = data.descricao || planoAtual.descricao;
         const preco = data.preco !== undefined ? data.preco : planoAtual.preco;
-        const imagem = data.imagem || planoAtual.imagem; 
+        const caminho_arquivo_foto =
+            data.caminho_arquivo_foto !== undefined
+                ? data.caminho_arquivo_foto
+                : planoAtual.caminho_arquivo_foto; 
 
         consulta =
-            "UPDATE planos SET nome = $1, descricao = $2, preco = $3, imagem = $4 WHERE id_plano = $5 RETURNING *";
+            "UPDATE planos SET nome = $1, descricao = $2, preco = $3, caminho_arquivo_foto = $4 WHERE id_plano = $5 RETURNING *";
         
-        resultado = await db.query(consulta, [nome, descricao, preco, imagem, id]);
-        
+        resultado = await db.query(consulta, [nome, descricao, preco, caminho_arquivo_foto, id]);
         res.status(200).json(resultado.rows[0]);
     } catch (e) {
         console.error("Erro ao atualizar plano:", e);
@@ -249,7 +245,8 @@ app.put("/fotos/:id", async (req, res) => {
         const caminho_arquivo = data.caminho_arquivo || fotoAtual.caminho_arquivo;
         const id_usuario = data.id_usuario || fotoAtual.id_usuario;
 
-        const consulta = "UPDATE fotos SET titulo = $1, caminho_arquivo = $2, id_usuario = $3 WHERE id_foto = $4 RETURNING *";
+        const consulta =
+            "UPDATE fotos SET titulo = $1, caminho_arquivo = $2, id_usuario = $3 WHERE id_foto = $4 RETURNING *";
         resultado = await db.query(consulta, [titulo, caminho_arquivo, id_usuario, id]);
         res.status(200).json(resultado.rows[0]);
     } catch (e) {
@@ -277,6 +274,7 @@ app.delete("/fotos/:id", async (req, res) => {
 
 
 // --- CRUD USUARIOS 
+
 
 // [GET] /usuarios
 app.get("/usuarios", async (req, res) => {
@@ -321,7 +319,8 @@ app.post("/usuarios", async (req, res) => {
         const senha = data.senha; 
         
         const db = conectarBD();
-        const consulta = "INSERT INTO usuarios (nome, email, senha) VALUES ($1, $2, $3) RETURNING id_usuario, nome, email";
+        const consulta =
+            "INSERT INTO usuarios (nome, email, senha) VALUES ($1, $2, $3) RETURNING id_usuario, nome, email";
         const usuario = [data.nome, data.email, senha];
         const resultado = await db.query(consulta, usuario);
         res.status(201).json(resultado.rows[0]);
@@ -348,7 +347,8 @@ app.put("/usuarios/:id", async (req, res) => {
         const nome = data.nome || usuarioAtual.nome;
         const email = data.email || usuarioAtual.email;
         
-        const consulta = "UPDATE usuarios SET nome = $1, email = $2 WHERE id_usuario = $3 RETURNING id_usuario, nome, email";
+        const consulta =
+            "UPDATE usuarios SET nome = $1, email = $2 WHERE id_usuario = $3 RETURNING id_usuario, nome, email";
         resultado = await db.query(consulta, [nome, email, id]);
         res.status(200).json(resultado.rows[0]);
     } catch (e) {
