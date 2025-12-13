@@ -74,6 +74,7 @@ app.get("/planos", async (req, res) => {
     console.log("Rota GET /planos solicitada");
     const db = conectarBD();
     try {
+        // Modificação: Se você quiser retornar a imagem no GET /planos, a consulta já faz isso com SELECT *
         const resultado = await db.query("SELECT * FROM planos ORDER BY id_plano");
         res.json(resultado.rows);
     } catch (e) {
@@ -100,12 +101,12 @@ app.get("/planos/:id", async (req, res) => {
     }
 });
 
-// [POST] /planos (Validação e INSERT corrigidos, SEM id_usuario e SEM caminho_arquivo_foto)
+// [POST] /planos (COM CAMPO IMAGEM)
 app.post("/planos", async (req, res) => {
     console.log("Rota POST /planos solicitada");
     try {
         const data = req.body;
-        // Validação (REMOVIDO 'id_usuario')
+        // Validação
         if (!data.nome || data.preco === undefined) {
             return res.status(400).json({
                 erro: "Dados inválidos",
@@ -113,10 +114,14 @@ app.post("/planos", async (req, res) => {
             });
         }
         const db = conectarBD();
-        // Consulta (REMOVIDO 'id_usuario' e 'caminho_arquivo_foto')
+        
+        // MODIFICAÇÃO: Inserindo a coluna 'imagem' e o parâmetro '$4'
         const consulta =
-            "INSERT INTO planos (nome, descricao, preco) VALUES ($1, $2, $3) RETURNING *";
-        const plano = [data.nome, data.descricao, data.preco];
+            "INSERT INTO planos (nome, descricao, preco, imagem) VALUES ($1, $2, $3, $4) RETURNING *";
+        
+        // MODIFICAÇÃO: Adicionando 'data.imagem' ao array de valores (usa null se não for enviado)
+        const plano = [data.nome, data.descricao, data.preco, data.imagem || null]; 
+        
         const resultado = await db.query(consulta, plano);
         res.status(201).json(resultado.rows[0]);
     } catch (e) {
@@ -125,7 +130,7 @@ app.post("/planos", async (req, res) => {
     }
 });
 
-// [PUT] /planos/:id (UPDATE corrigido, SEM id_usuario e SEM caminho_arquivo_foto)
+// [PUT] /planos/:id (COM CAMPO IMAGEM)
 app.put("/planos/:id", async (req, res) => {
     console.log("Rota PUT /planos/:id solicitada");
     try {
@@ -139,15 +144,17 @@ app.put("/planos/:id", async (req, res) => {
         const planoAtual = resultado.rows[0];
         const data = req.body;
         
-        // Atualiza campos (REMOVIDO 'id_usuario' e 'caminho_arquivo_foto')
+        // Atualiza campos
         const nome = data.nome || planoAtual.nome;
         const descricao = data.descricao || planoAtual.descricao;
         const preco = data.preco !== undefined ? data.preco : planoAtual.preco;
+        const imagem = data.imagem || planoAtual.imagem; 
 
-        // Consulta ( 'caminho_arquivo_foto')
         consulta =
-            "UPDATE planos SET nome = $1, descricao = $2, preco = $3 WHERE id_plano = $4 RETURNING *";
-        resultado = await db.query(consulta, [nome, descricao, preco, id]);
+            "UPDATE planos SET nome = $1, descricao = $2, preco = $3, imagem = $4 WHERE id_plano = $5 RETURNING *";
+        
+        resultado = await db.query(consulta, [nome, descricao, preco, imagem, id]);
+        
         res.status(200).json(resultado.rows[0]);
     } catch (e) {
         console.error("Erro ao atualizar plano:", e);
@@ -276,7 +283,6 @@ app.get("/usuarios", async (req, res) => {
     console.log("Rota GET /usuarios solicitada");
     const db = conectarBD();
     try {
-        
         const resultado = await db.query("SELECT id_usuario, nome, email FROM usuarios ORDER BY id_usuario");
         res.json(resultado.rows);
     } catch (e) {
@@ -312,7 +318,6 @@ app.post("/usuarios", async (req, res) => {
             return res.status(400).json({ erro: "Campos (nome, email, senha) são obrigatórios." });
         }
         
-   
         const senha = data.senha; 
         
         const db = conectarBD();
@@ -343,7 +348,6 @@ app.put("/usuarios/:id", async (req, res) => {
         const nome = data.nome || usuarioAtual.nome;
         const email = data.email || usuarioAtual.email;
         
-        
         const consulta = "UPDATE usuarios SET nome = $1, email = $2 WHERE id_usuario = $3 RETURNING id_usuario, nome, email";
         resultado = await db.query(consulta, [nome, email, id]);
         res.status(200).json(resultado.rows[0]);
@@ -359,9 +363,6 @@ app.delete("/usuarios/:id", async (req, res) => {
     try {
         const id = req.params.id;
         const db = conectarBD();
-        
-        
-        
         const resultado = await db.query("DELETE FROM usuarios WHERE id_usuario = $1 RETURNING *", [id]);
         if (resultado.rowCount === 0) {
             return res.status(404).json({ mensagem: "Usuário não encontrado" });
